@@ -4,9 +4,8 @@
     package="com.zebra.mxadbfiletransfer">
 
     <uses-permission
-        android:name="android.permission.MANAGE_EXTERNAL_STORAGE"
+        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
         tools:ignore="ScopedStorage" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
 
     <application
@@ -24,7 +23,8 @@
         <receiver
             android:name=".FileTransferReceiver"
             android:enabled="true"
-            android:exported="true">
+            android:exported="true"
+            tools:ignore="ExportedReceiver">
             <intent-filter>
                 <action android:name="com.zebra.mxadbfiletransfer.FILE_TRANSFER_ACTION" />
                 <action android:name="com.zebra.mxadbfiletransfer.TERMINATE_ACTION" />
