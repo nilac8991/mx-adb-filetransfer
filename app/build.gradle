@@ -28,13 +28,6 @@ android {
     buildTypes {
         release {
             minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-        }
-    }
-
-    buildTypes {
-        release {
-            minifyEnabled false
             signingConfig signingConfigs.official
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
@@ -43,6 +36,13 @@ android {
             minifyEnabled false
             signingConfig signingConfigs.official
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    applicationVariants.all { variant ->
+        variant.outputs.all { output ->
+            outputFileName = new File(
+                    "adb-filetransfer-wrapper-release" + "-" + versionName + ".apk")
         }
     }
 
