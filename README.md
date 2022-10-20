@@ -1,45 +1,67 @@
 # ADB FileTransfer Wrapper
 
-Wrapper Application which handles Broadcasts coming externally from ADB or any other Application wanting to use the customized ACTION to move files while preserving the permissions from the External Storage of the device to a different location such as the Enterprise partition by using MX FileMgr APIs.
-The application doesn't have any UI so it's considered entirely as a "Bridge" application made for this specific purpouse.
-It will not run in background unless it's being invoked externally by an application or by ADB.
+Wrapper Application that handles External Broadcasts from ADB or any other Application with the intent of moving files while preserving the permissions from the External Storage of the device to a different location such as the Enterprise partition by using MX FileMgr APIs.
+The application doesn't have any UI so it's entirely considered as a "Bridge" application made for this specific purpouse.
+It will not run in the background unless it's going to be invoked externally by an application or by ADB.
 
 ## How it Works & Manual Usage
 
 - Install the wrapper on any device running an Android Version with API Level >= 26
-- Use the available action to send a broadcast towards the app to transfer a file
+- Use one of the available actions to send a broadcast towards the application to perform the required operation:
 
 ```xml
-<action android:name="com.zebra.mxadbfiletransfer.FILE_TRANSFER_ACTION" />
+<action android:name="com.zebra.mxadbfiletransfer.FILE_MOVE_ACTION" />
+<action android:name="com.zebra.mxadbfiletransfer.FILE_DELTE_ACTION" />
 ```
 
-- The application will also expect 2 parameters:
+- The application will also expect 2 parameters when moving a file:
 
 ```kotlin
 const val SOURCE_FILE_PATH = "source_file_path"
 const val TARGET_FILE_PATH = "target_file_path"
 ```
 
-### Transfer the file from a Terminal Window with ADB
+### Transfer a file from a Terminal Window with ADB
 
 ```bash
-adb push $FullPathName /sdcard/
+adb push $FullSourcePathWithFileName /sdcard/
 
-adb shell am broadcast -a com.zebra.mxadbfiletransfer.FILE_TRANSFER_ACTION\
+adb shell am broadcast -a com.zebra.mxadbfiletransfer.FILE_MOVE_ACTION\
  --es source_file_path "$FullSourcePathWithFileName"\
  --es target_file_path "$FullTargetPathWithFileName"\
  -n com.zebra.mxadbfiletransfer/.FileTransferReceiver
 ```
 
-### Transfer the file from an External Application (Assuming the file is already in the specified location)
+### Delete a file from a Terminal Window with ADB
+
+```bash
+adb shell am broadcast -a com.zebra.mxadbfiletransfer.FILE_DELETE_ACTION\
+ --es source_file_path "$FullSourcePathWithFileName"\
+ -n com.zebra.mxadbfiletransfer/.FileTransferReceiver
+```
+
+### Transfer a file from an Application (Assuming the file is already in the specified location)
 
 ```kotlin
 val intent = Intent().apply {
-    action = "com.zebra.mxadbfiletransfer.FILE_TRANSFER_ACTION"
+    action = "com.zebra.mxadbfiletransfer.FILE_MOVE_ACTION"
     component = ComponentName("com.zebra.mxadbfiletransfer", "com.zebra.mxadbfiletransfer.FileTransferReceiver")
 
     putExtra("source_file_path","/sdcard/test-configuration.xml")
     putExtra("target_file_path", "/enterprise/usr/test-configuration.xml")
+}
+sendBroadcast(intent)
+```
+
+
+### Delete a file from an Application (Assuming the file is in the specified location)
+
+```kotlin
+val intent = Intent().apply {
+    action = "com.zebra.mxadbfiletransfer.FILE_DELETE_ACTION"
+    component = ComponentName("com.zebra.mxadbfiletransfer", "com.zebra.mxadbfiletransfer.FileTransferReceiver")
+
+    putExtra("source_file_path","/enterprise/usr/test-configuration.xml")
 }
 sendBroadcast(intent)
 ```
@@ -56,7 +78,7 @@ adb shell am broadcast -a com.zebra.mxadbfiletransfer.TERMINATE_ACTION\
  -n com.zebra.mxadbfiletransfer/.FileTransferReceiver
 ```
 
-#### Within an Application
+#### From an Application
 
 ```kotlin
 val intent = Intent().apply {
@@ -68,10 +90,14 @@ sendBroadcast(intent)
 
 ## Automatic Usage
 
-You can also speed up the process by using the automated script included in the repository, where you only need to input the fields with the required data and the script will do the rest for you.
+You can also speed up the process by using one of the automated scripts included in the repository.
+The Shell script will give you a wizzard-type of experience where you'll just need to input the fields with the required data and the script will do the rest for you.
 
 Just run it like any other Shell Script:
 
 ```bash
-./adb-file-transfer-wrapper.sh
+./adb-file-transfer-wizzard.sh
 ```
+
+If you want to use the Batch script, that will give you the convenience on Windows to just right click to transfer one or more files and with that, you will just have to send them to the script and everything else will be done in the background.
+You can checkout more about how the Batch Script works by following this guide: [Batch-Script-README](https://github.com/nilac8991/mx-adb-filetransfer/files/9828754/Batch-Script-README.pdf)
