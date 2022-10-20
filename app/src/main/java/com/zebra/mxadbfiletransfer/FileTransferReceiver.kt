@@ -167,7 +167,7 @@ open class FileTransferReceiver : BroadcastReceiver(), ProfileLoaderResultCallba
     companion object {
         const val TAG = "FileTransferReceiver"
 
-        const val ACTION = "com.zebra.mxadbfiletransfer.FILE_TRANSFER_ACTION"
+        const val ACTION = "com.zebra.mxadbfiletransfer.FILE_MOVE_ACTION"
         const val TERMINATE_ACTION = "com.zebra.mxadbfiletransfer.TERMINATE_ACTION"
 
         const val SOURCE_FILE_PATH = "source_file_path"

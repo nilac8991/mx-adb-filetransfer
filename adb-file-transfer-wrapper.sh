@@ -29,7 +29,7 @@ function TRANSFERFILE() {
 
 	adb push "$sourceFilePath" /sdcard/"$transferFileName"
 
-	adb shell am broadcast -a com.zebra.mxadbfiletransfer.FILE_TRANSFER_ACTION\
+	adb shell am broadcast -a com.zebra.mxadbfiletransfer.FILE_MOVE_ACTION\
  	--es source_file_path /sdcard/"$transferFileName"\
  	--es target_file_path "$targetFilePath"/"$transferFileName"\
  	-n com.zebra.mxadbfiletransfer/.FileTransferReceiver

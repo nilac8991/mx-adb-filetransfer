@@ -22,7 +22,7 @@
             android:exported="true"
             tools:ignore="ExportedReceiver">
             <intent-filter>
-                <action android:name="com.zebra.mxadbfiletransfer.FILE_TRANSFER_ACTION" />
+                <action android:name="com.zebra.mxadbfiletransfer.FILE_MOVE_ACTION" />
                 <action android:name="com.zebra.mxadbfiletransfer.TERMINATE_ACTION" />
 
                 <category android:name="android.intent.category.DEFAULT" />
