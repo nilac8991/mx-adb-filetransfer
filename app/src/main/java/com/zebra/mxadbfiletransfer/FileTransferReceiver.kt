@@ -22,23 +22,25 @@ import kotlin.system.exitProcess
 
 open class FileTransferReceiver : BroadcastReceiver(), ProfileLoaderResultCallback {
 
-    private var mSourceFilePath = ""
-    private var mTargetFilePath = ""
+    private var mSourceFilePath: String? = ""
+    private var mTargetFilePath: String? = ""
+
+    private var mAction = ""
 
     private var mEmdkInstance: EMDKManager? = null
 
     override fun onReceive(context: Context, intent: Intent) {
-        if (intent.action != ACTION && intent.action != TERMINATE_ACTION) {
+        //Discard Intents with Actions which are not ours
+        if (intent.action != FILE_MOVE_ACTION &&
+            intent.action != FILE_DELETE_ACTION &&
+            intent.action != TERMINATE_ACTION
+        ) {
             return
         }
 
-        if (intent.action == TERMINATE_ACTION) {
-            EMDKLoader.getInstance().release()
-            exitProcess(0)
-        }
-
-        mSourceFilePath = intent.getStringExtra(SOURCE_FILE_PATH)!!
-        mTargetFilePath = intent.getStringExtra(TARGET_FILE_PATH)!!
+        mAction = intent.action!!
+        mSourceFilePath = intent.getStringExtra(SOURCE_FILE_PATH)
+        mTargetFilePath = intent.getStringExtra(TARGET_FILE_PATH)
 
 //        if (!File(mSourceFilePath).exists()) {
 //            Log.e(
@@ -54,7 +56,7 @@ open class FileTransferReceiver : BroadcastReceiver(), ProfileLoaderResultCallba
             return
         }
 
-        moveFileToEnterprisePartition()
+        processAction()
     }
 
     override fun onProfileLoadFailed(errorObject: EMDKResults) {
@@ -83,9 +85,27 @@ open class FileTransferReceiver : BroadcastReceiver(), ProfileLoaderResultCallba
                 override fun onSuccess() {
                     Log.i(TAG, "EMDK Manager was successfully initialised")
 
-                    moveFileToEnterprisePartition()
+                    processAction()
                 }
             })
+    }
+
+    private fun processAction() {
+        when (mAction) {
+            FILE_MOVE_ACTION -> {
+                Log.i(TAG, "Moving file from $mSourceFilePath to $mTargetFilePath")
+                moveFileToEnterprisePartition()
+            }
+            FILE_DELETE_ACTION -> {
+                Log.i(TAG, "Deleting file from location: $mSourceFilePath")
+                removeFile()
+            }
+            TERMINATE_ACTION -> {
+                Log.i(TAG, "Terminating Receiver..")
+                EMDKLoader.getInstance().release()
+                exitProcess(0)
+            }
+        }
     }
 
     private fun moveFileToEnterprisePartition() {
@@ -123,12 +143,12 @@ open class FileTransferReceiver : BroadcastReceiver(), ProfileLoaderResultCallba
                 }
 
                 override fun onProfileLoaded() {
-                    removeSourceFile()
+                    removeFile()
                 }
             })
     }
 
-    private fun removeSourceFile() {
+    private fun removeFile() {
         val profile =
             """
             <wap-provisioningdoc>
@@ -167,7 +187,9 @@ open class FileTransferReceiver : BroadcastReceiver(), ProfileLoaderResultCallba
     companion object {
         const val TAG = "FileTransferReceiver"
 
-        const val ACTION = "com.zebra.mxadbfiletransfer.FILE_MOVE_ACTION"
+        const val FILE_MOVE_ACTION = "com.zebra.mxadbfiletransfer.FILE_MOVE_ACTION"
+        const val FILE_DELETE_ACTION = "com.zebra.mxadbfiletransfer.FILE_DELETE_ACTION"
+
         const val TERMINATE_ACTION = "com.zebra.mxadbfiletransfer.TERMINATE_ACTION"
 
         const val SOURCE_FILE_PATH = "source_file_path"
