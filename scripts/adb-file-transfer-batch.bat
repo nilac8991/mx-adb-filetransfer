@@ -27,7 +27,7 @@ for /L %%n in (1,1,!count!) DO (
  adb push "!item_%%n!" /sdcard
  for %%a in ("!item_%%n!") do (
  rem @echo %%~nxa
- adb shell am broadcast -a com.zebra.mxadbfiletransfer.FILE_TRANSFER_ACTION --es source_file_path "/sdcard/%%~nxa" --es target_file_path "/enterprise/usr/%%~nxa" -n com.zebra.mxadbfiletransfer/.FileTransferReceiver
+ adb shell am broadcast -a com.zebra.mxadbfiletransfer.FILE_MOVE_ACTION --es source_file_path "/sdcard/%%~nxa" --es target_file_path "/enterprise/usr/%%~nxa" -n com.zebra.mxadbfiletransfer/.FileTransferReceiver
    timeout 2
  )
 )

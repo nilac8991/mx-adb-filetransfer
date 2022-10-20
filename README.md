@@ -11,7 +11,7 @@ It will not run in the background unless it's going to be invoked externally by 
 
 ```xml
 <action android:name="com.zebra.mxadbfiletransfer.FILE_MOVE_ACTION" />
-<action android:name="com.zebra.mxadbfiletransfer.FILE_DELTE_ACTION" />
+<action android:name="com.zebra.mxadbfiletransfer.FILE_DELETE_ACTION" />
 ```
 
 - The application will also expect 2 parameters when moving a file:
