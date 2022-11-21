@@ -4,8 +4,6 @@ Wrapper Application that handles External Broadcasts from ADB or any other Appli
 The application doesn't have any UI so it's entirely considered as a "Bridge" application made for this specific purpouse.
 It will not run in the background unless it's going to be invoked externally by an application or by ADB.
 
-### <b>Internal ONLY for Zebra & Partners, ask before sharing it outside of the Organization.</b>
-
 ## How it Works & Manual Usage
 
 - Install the wrapper on any device running an Android Version with API Level >= 26
