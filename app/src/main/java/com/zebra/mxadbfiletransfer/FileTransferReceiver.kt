@@ -5,6 +5,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 import android.os.Environment
 import android.util.Log
@@ -22,8 +23,8 @@ import kotlin.system.exitProcess
 
 open class FileTransferReceiver : BroadcastReceiver(), ProfileLoaderResultCallback {
 
-    private var mSourceFilePath: String? = ""
-    private var mTargetFilePath: String? = ""
+    private var mSourceFilePath: Uri? = null
+    private var mTargetFilePath: Uri? = null
 
     private var mAction = ""
 
@@ -39,8 +40,8 @@ open class FileTransferReceiver : BroadcastReceiver(), ProfileLoaderResultCallba
         }
 
         mAction = intent.action!!
-        mSourceFilePath = intent.getStringExtra(SOURCE_FILE_PATH)
-        mTargetFilePath = intent.getStringExtra(TARGET_FILE_PATH)
+        mSourceFilePath = Uri.parse(intent.getStringExtra(SOURCE_FILE_PATH))
+        mTargetFilePath = Uri.parse(intent.getStringExtra(TARGET_FILE_PATH))
 
 //        if (!File(mSourceFilePath).exists()) {
 //            Log.e(
@@ -121,10 +122,10 @@ open class FileTransferReceiver : BroadcastReceiver(), ProfileLoaderResultCallba
                         <parm name="FileAction" value="1" />
                         <characteristic type="file-details">
                             <parm name="TargetAccessMethod" value="2" />
-                            <parm name="TargetPathAndFileName" value="$mTargetFilePath" />
+                            <parm name="TargetPathAndFileName" value="${mTargetFilePath?.path}" />
                             <parm name="IfDuplicate" value="1" />
                             <parm name="SourceAccessMethod" value="2" />
-                            <parm name="SourcePathAndFileName" value="$mSourceFilePath" />
+                            <parm name="SourcePathAndFileName" value="${mSourceFilePath?.path}" />
                         </characteristic>
                     </characteristic>
                 </characteristic>
@@ -160,7 +161,7 @@ open class FileTransferReceiver : BroadcastReceiver(), ProfileLoaderResultCallba
                     <characteristic version="10.1" type="FileMgr">
                         <parm name="FileAction" value="4" />
                         <characteristic type="file-details">
-                            <parm name="TargetPathAndFolderName" value="$mSourceFilePath" />
+                            <parm name="TargetPathAndFolderName" value="${mSourceFilePath?.path}" />
                         </characteristic>
                     </characteristic>
                 </characteristic>
