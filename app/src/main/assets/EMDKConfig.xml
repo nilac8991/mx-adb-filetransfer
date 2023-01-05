@@ -9,6 +9,10 @@
     </characteristic>
 
     <characteristic type="Profile">
+        <parm name="ProfileName" value="FilePull" />
+    </characteristic>
+
+    <characteristic type="Profile">
         <parm name="ProfileName" value="FileRemoval" />
     </characteristic>
 

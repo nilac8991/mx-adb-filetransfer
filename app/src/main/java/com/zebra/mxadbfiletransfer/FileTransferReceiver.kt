@@ -25,6 +25,7 @@ open class FileTransferReceiver : BroadcastReceiver(), ProfileLoaderResultCallba
 
     private var mSourceFilePath: Uri? = null
     private var mTargetFilePath: Uri? = null
+    private var mFileName: String? = null
 
     private var mAction = ""
 
@@ -33,6 +34,7 @@ open class FileTransferReceiver : BroadcastReceiver(), ProfileLoaderResultCallba
     override fun onReceive(context: Context, intent: Intent) {
         //Discard Intents with Actions which are not ours
         if (intent.action != FILE_MOVE_ACTION &&
+            intent.action != FILE_PULL_ACTION &&
             intent.action != FILE_DELETE_ACTION &&
             intent.action != TERMINATE_ACTION
         ) {
@@ -40,8 +42,13 @@ open class FileTransferReceiver : BroadcastReceiver(), ProfileLoaderResultCallba
         }
 
         mAction = intent.action!!
-        mSourceFilePath = Uri.parse(intent.getStringExtra(SOURCE_FILE_PATH))
-        mTargetFilePath = Uri.parse(intent.getStringExtra(TARGET_FILE_PATH))
+
+        if (mAction == FILE_PULL_ACTION) {
+            mFileName = intent.getStringExtra(FILE_NAME)
+        } else {
+            mSourceFilePath = Uri.parse(intent.getStringExtra(SOURCE_FILE_PATH))
+            mTargetFilePath = Uri.parse(intent.getStringExtra(TARGET_FILE_PATH))
+        }
 
 //        if (!File(mSourceFilePath).exists()) {
 //            Log.e(
@@ -97,6 +104,10 @@ open class FileTransferReceiver : BroadcastReceiver(), ProfileLoaderResultCallba
                 Log.i(TAG, "Moving file from $mSourceFilePath to $mTargetFilePath")
                 moveFileToEnterprisePartition()
             }
+            FILE_PULL_ACTION -> {
+                Log.i(TAG, "Pulling file: $mFileName from the enterprise partition")
+                pullFileFromEnterprisePartition()
+            }
             FILE_DELETE_ACTION -> {
                 Log.i(TAG, "Deleting file from location: $mSourceFilePath")
                 removeFile()
@@ -133,6 +144,46 @@ open class FileTransferReceiver : BroadcastReceiver(), ProfileLoaderResultCallba
 
         ProfileLoader().processProfile(
             "FileTransfer",
+            profile,
+            object : ProfileLoaderResultCallback {
+                override fun onProfileLoadFailed(errorObject: EMDKResults) {
+                    //Nothing to see here..
+                }
+
+                override fun onProfileLoadFailed(message: String) {
+                    Log.e(TAG, "Failed to move file!\n$message")
+                }
+
+                override fun onProfileLoaded() {
+                    removeFile()
+                }
+            })
+    }
+
+    private fun pullFileFromEnterprisePartition() {
+        val profile =
+            """
+            <wap-provisioningdoc>
+                <characteristic type="Profile">
+                    <parm name="ProfileName" value="FilePull" />
+                    <parm name="ModifiedDate" value="2022-08-17 10:20:36" />
+                    <parm name="TargetSystemVersion" value="10.1" />
+
+                    <characteristic version="10.1" type="FileMgr">
+                        <parm name="FileAction" value="1" />
+                        <characteristic type="file-details">
+                            <parm name="TargetAccessMethod" value="2" />
+                            <parm name="TargetPathAndFileName" value="${Environment.getExternalStorageDirectory().path}/$mFileName" />
+                            <parm name="IfDuplicate" value="1" />
+                            <parm name="SourceAccessMethod" value="2" />
+                            <parm name="SourcePathAndFileName" value="/enterprise/usr/$mFileName" />
+                        </characteristic>
+                    </characteristic>
+                </characteristic>
+            </wap-provisioningdoc>"""
+
+        ProfileLoader().processProfile(
+            "FilePull",
             profile,
             object : ProfileLoaderResultCallback {
                 override fun onProfileLoadFailed(errorObject: EMDKResults) {
@@ -190,9 +241,11 @@ open class FileTransferReceiver : BroadcastReceiver(), ProfileLoaderResultCallba
 
         const val FILE_MOVE_ACTION = "com.zebra.mxadbfiletransfer.FILE_MOVE_ACTION"
         const val FILE_DELETE_ACTION = "com.zebra.mxadbfiletransfer.FILE_DELETE_ACTION"
+        const val FILE_PULL_ACTION = "com.zebra.mxadbfiletransfer.FILE_PULL_ACTION"
 
         const val TERMINATE_ACTION = "com.zebra.mxadbfiletransfer.TERMINATE_ACTION"
 
+        const val FILE_NAME = "file_name"
         const val SOURCE_FILE_PATH = "source_file_path"
         const val TARGET_FILE_PATH = "target_file_path"
     }
