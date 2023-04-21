@@ -1,46 +1,50 @@
 # ADB FileTransfer Wrapper
 
-Wrapper Application that handles External Broadcasts from ADB or any other Application with the intent of moving files while preserving the permissions from the External Storage of the device to a different location such as the Enterprise partition by using MX FileMgr APIs.
-The application doesn't have any UI so it's entirely considered as a "Bridge" application made for this specific purpouse.
+Wrapper utility capable of moving files from the External Storage of the device to a different location such as the Enterprise partition while preserving the permissions and by using MX FileMgr APIs. Everything manageable by using Intents.<br>
+The utility doesn't have any UI so it's entirely considered as a "Bridge" application made for this specific purpouse.
 It will not run in the background unless it's going to be invoked externally by an application or by ADB.
 
 ## How it Works & Manual Usage
 
 - Install the wrapper on any device running an Android Version with API Level >= 26
-- Use one of the available actions to send a broadcast towards the application to perform the required operation:
+- Use one of the available actions to send a broadcast towards the wrapper utility to perform the required operation.
 
 ```xml
 <action android:name="com.zebra.mxadbfiletransfer.FILE_MOVE_ACTION" />
+<action android:name="com.zebra.mxadbfiletransfer.FILE_COPY_ACTION" />
+<action android:name="com.zebra.mxadbfiletransfer.FILE_PULL_ACTION" />
 <action android:name="com.zebra.mxadbfiletransfer.FILE_DELETE_ACTION" />
+
+<action android:name="com.zebra.mxadbfiletransfer.TERMINATE_ACTION" />
 ```
 
-- The application will also expect 2 parameters when moving a file:
+The application will also support these parameters:
 
 ```kotlin
+//When moving a file
 const val SOURCE_FILE_PATH = "source_file_path"
 const val TARGET_FILE_PATH = "target_file_path"
+
+//When pulling a file from the enterprise partition
+const val FILE_NAME = "file_name"
 ```
 
-### Transfer a file from a Terminal Window with ADB
+<br>
+
+### Move a file
+
+#### With ADB:
 
 ```bash
 adb push $FullSourcePathWithFileName /sdcard/
 
 adb shell am broadcast -a com.zebra.mxadbfiletransfer.FILE_MOVE_ACTION\
- --es source_file_path "$FullSourcePathWithFileName"\
- --es target_file_path "$FullTargetPathWithFileName"\
+ --es source_file_path "/sdcard/test-configuration.xml"\
+ --es target_file_path "/enterprise/usr/test-configuration.xml"\
  -n com.zebra.mxadbfiletransfer/.FileTransferReceiver
 ```
 
-### Delete a file from a Terminal Window with ADB
-
-```bash
-adb shell am broadcast -a com.zebra.mxadbfiletransfer.FILE_DELETE_ACTION\
- --es source_file_path "$FullSourcePathWithFileName"\
- -n com.zebra.mxadbfiletransfer/.FileTransferReceiver
-```
-
-### Transfer a file from an Application (Assuming the file is already in the specified location)
+#### From an application (Assuming the file is already in the specified location)
 
 ```kotlin
 val intent = Intent().apply {
@@ -53,8 +57,20 @@ val intent = Intent().apply {
 sendBroadcast(intent)
 ```
 
+<br>
 
-### Delete a file from an Application (Assuming the file is in the specified location)
+### Delete a file
+
+#### With ADB:
+
+```bash
+adb shell am broadcast -a com.zebra.mxadbfiletransfer.FILE_DELETE_ACTION\
+ --es source_file_path "$FullSourcePathWithFileName"\
+ -n com.zebra.mxadbfiletransfer/.FileTransferReceiver
+```
+
+
+#### From an Application (Assuming the file is in the specified location)
 
 ```kotlin
 val intent = Intent().apply {
@@ -66,10 +82,37 @@ val intent = Intent().apply {
 sendBroadcast(intent)
 ```
 
-### Terminate the connection with the Wrapper Application
+<br>
 
-Since the Wrapper is using an EMDK Manager instance to process the profiles for the transfer operations, it doesn't reinitialize every time the instance as it preserves it for further use in case there are multiple files to be transfered/moved.
-When you finish with the operations it is recommended to terminate the Wrapper and at the same time recycle the available EMDK Manager instance.
+### Pull a file
+
+#### With ADB:
+
+```bash
+adb shell am broadcast -a com.zebra.mxadbfiletransfer.FILE_PULL_ACTION\
+ --es file_name "/enterprise/usr/test-configuration.xml"\
+ -n com.zebra.mxadbfiletransfer/.FileTransferReceiver
+```
+
+
+#### From an Application (Assuming the file is in the specified location)
+
+```kotlin
+val intent = Intent().apply {
+    action = "com.zebra.mxadbfiletransfer.FILE_PULL_ACTION"
+    component = ComponentName("com.zebra.mxadbfiletransfer", "com.zebra.mxadbfiletransfer.FileTransferReceiver")
+
+    putExtra("file_name","/enterprise/usr/test-configuration.xml")
+}
+sendBroadcast(intent)
+```
+
+<br>
+
+### Terminate the connection with the Wrapper
+
+Since the Wrapper is using an EMDK Manager instance to process the profiles for the transfer operations, it doesn't reinitialize every time the instance as it preserves it for further use in case there are multiple files to be copied/moved.
+When you finish with the operations it is recommended to terminate the Wrapper which at the same time will recycle the used EMDK Manager instance.
 
 #### With ADB:
 
