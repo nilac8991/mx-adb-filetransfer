@@ -21,7 +21,7 @@ import com.zebra.nilac.emdkloader.interfaces.ProfileLoaderResultCallback
 import java.io.File
 import kotlin.system.exitProcess
 
-open class FileTransferReceiver : BroadcastReceiver(), ProfileLoaderResultCallback {
+open class FileTransferReceiver : BroadcastReceiver() {
 
     private var mSourceFilePath: Uri? = null
     private var mTargetFilePath: Uri? = null
@@ -34,6 +34,7 @@ open class FileTransferReceiver : BroadcastReceiver(), ProfileLoaderResultCallba
     override fun onReceive(context: Context, intent: Intent) {
         //Discard Intents with Actions which are not ours
         if (intent.action != FILE_MOVE_ACTION &&
+            intent.action != FILE_COPY_ACTION &&
             intent.action != FILE_PULL_ACTION &&
             intent.action != FILE_DELETE_ACTION &&
             intent.action != TERMINATE_ACTION
@@ -67,18 +68,6 @@ open class FileTransferReceiver : BroadcastReceiver(), ProfileLoaderResultCallba
         processAction()
     }
 
-    override fun onProfileLoadFailed(errorObject: EMDKResults) {
-        //Nothing to see here..
-    }
-
-    override fun onProfileLoadFailed(message: String) {
-        Log.e(TAG, "Failed to grant Manage External Storage Access Permission!")
-    }
-
-    override fun onProfileLoaded() {
-        moveFileToEnterprisePartition()
-    }
-
     private fun initEMDKManager() {
         //Initialising EMDK First...
         Log.i(TAG, "Initialising EMDK Manager")
@@ -102,7 +91,11 @@ open class FileTransferReceiver : BroadcastReceiver(), ProfileLoaderResultCallba
         when (mAction) {
             FILE_MOVE_ACTION -> {
                 Log.i(TAG, "Moving file from $mSourceFilePath to $mTargetFilePath")
-                moveFileToEnterprisePartition()
+                moveFileToEnterprisePartition(true)
+            }
+            FILE_COPY_ACTION -> {
+                Log.i(TAG, "Copying file from $mSourceFilePath to $mTargetFilePath")
+                moveFileToEnterprisePartition(false)
             }
             FILE_PULL_ACTION -> {
                 Log.i(TAG, "Pulling file: $mFileName from the enterprise partition")
@@ -120,7 +113,7 @@ open class FileTransferReceiver : BroadcastReceiver(), ProfileLoaderResultCallba
         }
     }
 
-    private fun moveFileToEnterprisePartition() {
+    private fun moveFileToEnterprisePartition(shouldDeleteSourceFile: Boolean) {
         val profile =
             """
             <wap-provisioningdoc>
@@ -155,7 +148,9 @@ open class FileTransferReceiver : BroadcastReceiver(), ProfileLoaderResultCallba
                 }
 
                 override fun onProfileLoaded() {
-                    removeFile()
+                    if (shouldDeleteSourceFile) {
+                        removeFile()
+                    }
                 }
             })
     }
@@ -240,6 +235,7 @@ open class FileTransferReceiver : BroadcastReceiver(), ProfileLoaderResultCallba
         const val TAG = "FileTransferReceiver"
 
         const val FILE_MOVE_ACTION = "com.zebra.mxadbfiletransfer.FILE_MOVE_ACTION"
+        const val FILE_COPY_ACTION = "com.zebra.mxadbfiletransfer.FILE_COPY_ACTION"
         const val FILE_DELETE_ACTION = "com.zebra.mxadbfiletransfer.FILE_DELETE_ACTION"
         const val FILE_PULL_ACTION = "com.zebra.mxadbfiletransfer.FILE_PULL_ACTION"
 
