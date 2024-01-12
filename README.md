@@ -59,6 +59,34 @@ sendBroadcast(intent)
 
 <br>
 
+### Copy a file
+
+#### With ADB:
+
+```bash
+adb push $FullSourcePathWithFileName /sdcard/
+
+adb shell am broadcast -a com.zebra.mxadbfiletransfer.FILE_COPY_ACTION\
+ --es source_file_path "/sdcard/test-configuration.xml"\
+ --es target_file_path "/enterprise/usr/test-configuration.xml"\
+ -n com.zebra.mxadbfiletransfer/.FileTransferReceiver
+```
+
+#### From an application (Assuming the file is already in the specified location)
+
+```kotlin
+val intent = Intent().apply {
+    action = "com.zebra.mxadbfiletransfer.FILE_COPY_ACTION"
+    component = ComponentName("com.zebra.mxadbfiletransfer", "com.zebra.mxadbfiletransfer.FileTransferReceiver")
+
+    putExtra("source_file_path","/sdcard/test-configuration.xml")
+    putExtra("target_file_path", "/enterprise/usr/test-configuration.xml")
+}
+sendBroadcast(intent)
+```
+
+<br>
+
 ### Delete a file
 
 #### With ADB:
