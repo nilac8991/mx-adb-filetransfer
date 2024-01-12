@@ -127,7 +127,6 @@ open class FileTransferReceiver : BroadcastReceiver() {
                         <characteristic type="file-details">
                             <parm name="TargetAccessMethod" value="2" />
                             <parm name="TargetPathAndFileName" value="${mTargetFilePath?.path}" />
-                            <parm name="IfDuplicate" value="1" />
                             <parm name="SourceAccessMethod" value="2" />
                             <parm name="SourcePathAndFileName" value="${mSourceFilePath?.path}" />
                         </characteristic>
@@ -169,7 +168,6 @@ open class FileTransferReceiver : BroadcastReceiver() {
                         <characteristic type="file-details">
                             <parm name="TargetAccessMethod" value="2" />
                             <parm name="TargetPathAndFileName" value="${Environment.getExternalStorageDirectory().path}/$mFileName" />
-                            <parm name="IfDuplicate" value="1" />
                             <parm name="SourceAccessMethod" value="2" />
                             <parm name="SourcePathAndFileName" value="/enterprise/usr/$mFileName" />
                         </characteristic>
